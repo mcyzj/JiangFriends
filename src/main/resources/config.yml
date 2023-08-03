@@ -1,0 +1,19 @@
+#数据库存储方式，群组服选择Mysql
+#mysql或db，默认db
+Database: db
+#Mysql设置，上面填了db的跳过这项
+Mysql:
+  host: 127.0.0.1
+  port: 3306
+  database: mcyzj
+  user: root
+  passwd: '123456'
+  ssl: false
+#默认玩家最大好友数量
+maxfriends: 50
+#插件消息前缀
+prefix: "[好友系统] "
+#是否开启基岩版优化，需要Floodgate支持
+isGeyser: false
+#配置文件版本，勿动！！！
+version: 1
