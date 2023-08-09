@@ -7,7 +7,7 @@ object Friends {
     fun getapplylist(uuid: UUID): List<UUID>? {
         val playerdata = Database.getplayerdata(uuid)
         if (playerdata != null) {
-            return playerdata.blacks
+            return playerdata.apply
         }
         return null
     }
@@ -46,22 +46,40 @@ object Friends {
         return Database.setplayerdata(playerdata)
     }
     fun addfriends(uuid: UUID, friend: UUID): Boolean{
-        val playerdata = Database.getplayerdata(uuid)
-        val friends = playerdata?.friends as ArrayList<UUID>
+        var playerdata = Database.getplayerdata(uuid)
+        var friends = playerdata?.friends as ArrayList<UUID>
         if(friend in friends){
             return false
         }
         friends.add(friend)
         playerdata.friends = friends
+        Database.setplayerdata(playerdata)
+
+        playerdata = Database.getplayerdata(friend) ?: return false
+        friends = playerdata.friends as ArrayList<UUID>
+        if(uuid in friends){
+            return false
+        }
+        friends.add(uuid)
+        playerdata.friends = friends
         return Database.setplayerdata(playerdata)
     }
     fun removefriends(uuid: UUID, friend: UUID): Boolean{
-        val playerdata = Database.getplayerdata(uuid)
-        val friends = playerdata?.friends as ArrayList<UUID>
+        var playerdata = Database.getplayerdata(uuid) ?: return false
+        var friends = playerdata.friends as ArrayList<UUID>
         if(friend !in friends){
             return false
         }
         friends.remove(friend)
+        playerdata.friends = friends
+        Database.setplayerdata(playerdata)
+
+        playerdata = Database.getplayerdata(friend) ?: return false
+        friends = playerdata.friends as ArrayList<UUID>
+        if(uuid !in friends){
+            return false
+        }
+        friends.remove(uuid)
         playerdata.friends = friends
         return Database.setplayerdata(playerdata)
     }

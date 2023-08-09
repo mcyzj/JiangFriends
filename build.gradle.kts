@@ -32,6 +32,7 @@ repositories {
 dependencies {
     implementation ("com.j256.ormlite:ormlite-core:6.1")
     implementation ("com.j256.ormlite:ormlite-jdbc:6.1")
+    implementation ("com.zaxxer:HikariCP:4.0.3")
     implementation("com.xbaimiao:EasyLib:2.1.6")
     compileOnly(dependencyNotation = "org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
     implementation(fileTree("lib"))

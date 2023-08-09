@@ -32,17 +32,18 @@ package com.mcyzj.jiangfriends
  *                   不见满街漂亮妹，哪个归得程序员？
  */
 
+import com.mcyzj.jiangfriends.command.Command
 import com.mcyzj.jiangfriends.database.DatabaseApi
 import com.mcyzj.jiangfriends.database.MysqlDatabaseApi
 import com.mcyzj.jiangfriends.database.SQLiteDatabaseApi
 import com.mcyzj.jiangfriends.listener.RegisterListener
+import com.xbaimiao.easylib.EasyPlugin
 import com.xbaimiao.easylib.module.chat.BuiltInConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.FileConfiguration
-import org.bukkit.plugin.java.JavaPlugin
 
 @Suppress("unused")
-class Main : JavaPlugin(){
+class Main : EasyPlugin(){
 
     companion object {
         lateinit var databaseApi: DatabaseApi
@@ -77,6 +78,8 @@ class Main : JavaPlugin(){
 
         //注册监听事件
         RegisterListener.registerAll()
+        //注册指令
+        Command().commandRoot.register()
     }
 
     override fun onDisable() {
