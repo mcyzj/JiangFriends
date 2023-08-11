@@ -1,6 +1,7 @@
 package com.mcyzj.jiangfriends.command
 
 import com.mcyzj.jiangfriends.Main
+import com.mcyzj.jiangfriends.api.Chat
 import com.mcyzj.jiangfriends.api.Friends
 import com.mcyzj.jiangfriends.tool.Players
 import com.xbaimiao.easylib.module.command.command
@@ -23,35 +24,43 @@ class Command {
             }
             if((args.size == 1).and(sender is Player)){
                 val player = sender as Player
-                val friend = Players.getplayer(args[0])
-                if (friend != null){
-                    if(friend == player){
-                        player.sendMessage("${Main.Config.getString("prefix")}你不能添加自己为自己的好友")
-                        return@exec
-                    }
-                    if(Friends.addapply(player.uniqueId, friend.uniqueId)){
-                        player.sendMessage("${Main.Config.getString("prefix")}发送好友申请成功")
-                        return@exec
-                    }else{
-                        player.sendMessage("${Main.Config.getString("prefix")}发送好友申请失败")
-                        return@exec
-                    }
+                var friend = Players.getplayer(args[0])
+                if (friend == null) {
+                    friend = Players.getplayeruuid(UUID.fromString(args[0]))
                 }
-                val uuidfriend = Players.getplayeruuid(UUID.fromString(args[0]))
-                if (uuidfriend != null){
-                    if(uuidfriend == player){
-                        player.sendMessage("${Main.Config.getString("prefix")}你不能添加自己为自己的好友")
-                        return@exec
-                    }
-                    if(Friends.addapply(player.uniqueId, uuidfriend.uniqueId)){
-                        player.sendMessage("${Main.Config.getString("prefix")}发送好友申请成功")
-                        return@exec
-                    }else{
-                        player.sendMessage("${Main.Config.getString("prefix")}发送好友申请失败")
-                        return@exec
-                    }
+                if (friend == null) {
+                    sender.sendMessage("${Main.Config.getString("prefix")}无法寻找到玩家${args[0]}")
+                    return@exec
                 }
-                player.sendMessage("${Main.Config.getString("prefix")}无法寻找到玩家${args[0]}")
+                if(friend == player){
+                    player.sendMessage("${Main.Config.getString("prefix")}你不能添加自己为自己的好友")
+                    return@exec
+                }
+                val playerBlackList = Friends.getblacklist(player.uniqueId)
+                if(playerBlackList == null){
+                    player.sendMessage("${Main.Config.getString("prefix")}无法获取${player.name}的黑名单列表")
+                    return@exec
+                }
+                val friendBlackList = Friends.getblacklist(friend.uniqueId)
+                if(friendBlackList == null){
+                    player.sendMessage("${Main.Config.getString("prefix")}无法获取${friend.name}的黑名单列表")
+                    return@exec
+                }
+                if(player.uniqueId in friendBlackList){
+                    player.sendMessage("${Main.Config.getString("prefix")}你在对方的黑名单内")
+                    return@exec
+                }
+                if(friend.uniqueId in playerBlackList){
+                    player.sendMessage("${Main.Config.getString("prefix")}从黑名单内移除${friend.name}")
+                    Friends.removeblack(player.uniqueId, friend.uniqueId)
+                }
+                if(Friends.addapply(player.uniqueId, friend.uniqueId)){
+                    player.sendMessage("${Main.Config.getString("prefix")}发送好友申请成功")
+                    return@exec
+                }else{
+                    player.sendMessage("${Main.Config.getString("prefix")}发送好友申请失败")
+                    return@exec
+                }
             }
             if((args.size == 2).and(sender.isOp)){
                 var friend = Players.getplayer(args[0])
@@ -73,6 +82,24 @@ class Command {
                 if(friend == player){
                     player.sendMessage("${Main.Config.getString("prefix")}你不能让一个人互相成为好友")
                     return@exec
+                }
+                val playerBlackList = Friends.getblacklist(player.uniqueId)
+                if(playerBlackList == null){
+                    player.sendMessage("${Main.Config.getString("prefix")}无法获取${player.name}的黑名单列表")
+                    return@exec
+                }
+                val friendBlackList = Friends.getblacklist(friend.uniqueId)
+                if(friendBlackList == null){
+                    player.sendMessage("${Main.Config.getString("prefix")}无法获取${friend.name}的黑名单列表")
+                    return@exec
+                }
+                if(player.uniqueId in friendBlackList){
+                    player.sendMessage("${Main.Config.getString("prefix")}从${friend.name}的黑名单内移除${player.name}")
+                    Friends.removeblack(friend.uniqueId, player.uniqueId)
+                }
+                if(friend.uniqueId in playerBlackList){
+                    player.sendMessage("${Main.Config.getString("prefix")}从${player.name}的黑名单内移除${friend.name}")
+                    Friends.removeblack(player.uniqueId, friend.uniqueId)
                 }
                 var applylist = Friends.getapplylist(friend.uniqueId)
                 if (applylist != null) {
@@ -163,17 +190,17 @@ class Command {
                     if (friendlist.isNotEmpty()) {
                         if (friend.uniqueId in friendlist) {
                             if (Friends.addfriends(player.uniqueId, friend.uniqueId)) {
-                                player.sendMessage("${Main.Config.getString("prefix")}删除好友${friend.name}成功")
+                                player.sendMessage("${Main.Config.getString("prefix")}删除${player.name}的好友${friend.name}成功")
                                 return@exec
                             } else {
-                                player.sendMessage("${Main.Config.getString("prefix")}删除好友${friend.name}失败")
+                                player.sendMessage("${Main.Config.getString("prefix")}删除${player.name}的好友${friend.name}失败")
                                 return@exec
                             }
                         } else {
-                            player.sendMessage("${Main.Config.getString("prefix")}${friend.name}并不是你的好友")
+                            player.sendMessage("${Main.Config.getString("prefix")}${friend.name}并不是${player.name}的好友")
                         }
                     }else{
-                        player.sendMessage("${Main.Config.getString("prefix")}删除好友${friend.name}失败")
+                        player.sendMessage("${Main.Config.getString("prefix")}删除${player.name}的好友${friend.name}失败")
                     }
                 }
             }
@@ -219,10 +246,92 @@ class Command {
         }
     }
 
-    val commandRoot = command<CommandSender>("friends") {
+    private val chat = command<CommandSender>("chat") {
+        permission = "jiangfriends.command.chat"
+        exec {
+            if(args.size == 0){
+                sender.sendMessage("${Main.Config.getString("prefix")}参数不符合规范")
+                sender.sendMessage("${Main.Config.getString("prefix")}/friends chat [好友申请中的玩家/all]")
+                return@exec
+            }
+            if((args.size == 1).and(sender is Player)) {
+                val player = sender as Player
+                if (args[0] == "all") {
+                    Chat.removePlayerChat(player)
+                    player.sendMessage("${Main.Config.getString("prefix")}切换公共频道")
+                } else {
+                    var friend = Players.getplayer(args[0])
+                    if (friend == null) {
+                        friend = Players.getplayeruuid(UUID.fromString(args[0]))
+                    }
+                    if (friend == null) {
+                        sender.sendMessage("${Main.Config.getString("prefix")}无法寻找到玩家${args[0]}")
+                        return@exec
+                    }
+                    val friendList = Friends.getfriendslist(player.uniqueId)
+                        ?: return@exec sender.sendMessage("${Main.Config.getString("prefix")}无法获取好友列表")
+                    if (friend.uniqueId in friendList) {
+                        Chat.setPlayerChat(player, friend)
+                        player.sendMessage("${Main.Config.getString("prefix")}切换聊天频道")
+                    } else {
+                        player.sendMessage("${Main.Config.getString("prefix")}你貌似还不是对方的好友")
+                    }
+                }
+            }
+            if((args.size == 2).and(sender.isOp)) {
+                var player = Players.getplayer(args[1])
+                if (player == null) {
+                    player = Players.getplayeruuid(UUID.fromString(args[1]))
+                }
+                if (player == null) {
+                    sender.sendMessage("${Main.Config.getString("prefix")}无法寻找到玩家${args[1]}")
+                    return@exec
+                }
+                if (args[0] == "all") {
+                    Chat.removePlayerChat(player)
+                    player.sendMessage("${Main.Config.getString("prefix")}切换公共频道")
+                } else {
+                    var friend = Players.getplayer(args[0])
+                    if (friend == null) {
+                        friend = Players.getplayeruuid(UUID.fromString(args[0]))
+                    }
+                    if (friend == null) {
+                        sender.sendMessage("${Main.Config.getString("prefix")}无法寻找到玩家${args[0]}")
+                        return@exec
+                    }
+                    Chat.setPlayerChat(player, friend)
+                    player.sendMessage("${Main.Config.getString("prefix")}切换聊天频道")
+                }
+            }
+        }
+    }
+
+    val commandRoot = command<CommandSender>(Main.Config.getString("command.main")?: "friends") {
         permission = "jiangfriends.command"
         sub(add)
         sub(apply)
+        sub(chat)
         sub(remove)
+    }
+
+    val fast = command<CommandSender>(Main.Config.getString("command.fast")?: "c") {
+        permission = "jiangfriends.command.fast"
+        exec {
+            if (sender is Player){
+                val friend = Chat.getLastPlayerChat(sender as Player) ?: return@exec
+                Chat.setPlayerChat(sender as Player, friend)
+                sender.sendMessage("${Main.Config.getString("prefix")}切换聊天频道")
+            }
+        }
+    }
+
+    val back = command<CommandSender>(Main.Config.getString("command.back")?: "b") {
+        permission = "jiangfriends.command.back"
+        exec {
+            if (sender is Player){
+                Chat.removePlayerChat(sender as Player)
+                sender.sendMessage("${Main.Config.getString("prefix")}切换公共频道")
+            }
+        }
     }
 }

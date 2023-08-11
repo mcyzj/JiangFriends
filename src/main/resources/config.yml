@@ -1,3 +1,5 @@
+#配置文件版本，勿动！！！
+version: 1
 #数据库存储方式，群组服选择Mysql
 #mysql或db，默认db
 Database: db
@@ -13,7 +15,16 @@ Mysql:
 maxfriends: 50
 #插件消息前缀
 prefix: "[好友系统] "
+#好友私聊消息前缀
+friendChat: "[好友系统]%player_name% "
 #是否开启基岩版优化，需要Floodgate支持
 isGeyser: false
-#配置文件版本，勿动！！！
-version: 1
+#设置命令，必须英文
+command:
+  #主命令名称
+  main: "friends"
+  #以下内容填写"null"关闭
+  #聊天快回复快捷命令
+  fast: "c"
+  #返回公共聊天快捷键
+  back: "b"

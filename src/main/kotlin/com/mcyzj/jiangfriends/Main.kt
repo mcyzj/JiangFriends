@@ -80,6 +80,8 @@ class Main : EasyPlugin(){
         RegisterListener.registerAll()
         //注册指令
         Command().commandRoot.register()
+        Command().fast.register()
+        Command().back.register()
     }
 
     override fun onDisable() {
